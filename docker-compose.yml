@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/autoparts.db
+      - SUPPLIER1_URL=http://mock_supplier1:8001
+    depends_on:
+      - mock_supplier1
+    command: >
+      sh -c "python scripts/seed_db.py &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  mock_supplier1:
+    build:
+      context: .
+      dockerfile: mock_supplier1/Dockerfile
+    ports:
+      - "8001:8001"
+    command: uvicorn mock_supplier1.main:app --host 0.0.0.0 --port 8001
